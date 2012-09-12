@@ -9,7 +9,7 @@
      * 3 Installation using the Perl Package Manager
      
           * 3.1 GUI Installation
-          * 3.2 Comand-line Installation
+          * 3.2 Command-line Installation
           
      * 4 Installation using CPAN or manual installation
      * 5 Bioperl
@@ -99,7 +99,7 @@ Installation using the Perl Package Manager
            6) Click the green arrow (Run marked actions) to complete the
            installation.
 
-  Comand-line Installation
+  Command-line Installation
 
            Use the ActiveState ppm-shell:
 
