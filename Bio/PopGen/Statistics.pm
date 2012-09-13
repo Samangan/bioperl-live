@@ -361,6 +361,10 @@ sub fu_and_li_D_star {
 sub fu_and_li_D_star_counts {
     my ($self,$n,$seg_sites, $singletons) = @_;
     my $a_n;
+	if( $n <= 3 ) {
+		$self->warn("n is $n, too small, must be > 3\n");
+		return;
+    }	
     for(my $k = 1; $k < $n; $k++ ) {
 	$a_n += ( 1 / $k );
     }
