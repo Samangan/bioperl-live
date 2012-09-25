@@ -42,6 +42,31 @@ Bio::Draw::Pictogram - generate SVG output of Pictogram display for consensus mo
   my $svg = $picto->make_svg(\@seq);
 
   print $svg->xmlify."\n";
+  
+  
+
+  #The constructor can also be called with an optional param called: explode
+  #Explode if true puts each nucleotide on it's own line. (For a different way to visualize it).
+  #Note: explode will preserve the spacing.
+
+
+  my $explodedPic = Bio::Draw::Pictogram->new(-width=>"800",
+						-height=>"500",
+						-fontsize=>"60",
+						-plot_bits=>1,
+						-background=>{
+								 'A'=>0.25,
+								 'C'=>0.18,
+								 'T'=>0.32,
+								 'G'=>0.25},
+						-color=>{'A'=>'red',
+								 'G'=>'blue',
+								 'C'=>'green',
+								 'T'=>'magenta'},
+						-explode=>1);
+
+  my $Exsvg = $explodedPic->make_svg(\@seq);
+  print $Exsvg->xmlify."\n";
 
   #Support for Bio::Matrix::PSM::SiteMatrix now included
 
@@ -157,8 +182,8 @@ use constant MAXBITS => 2;
 
 sub new {
   my ($caller,@args) = @_;
-  my $self = $caller->SUPER::new(@args);
-  my ($width,$height,$fontsize,$color,$background,$bit,$normalize) = $self->_rearrange([qw(WIDTH HEIGHT FONTSIZE COLOR BACKGROUND PLOT_BITS NORMALIZE)],@args);
+  my $self = $caller->SUPER::new(@args);  
+  my ($width,$height,$fontsize,$color,$background,$bit,$normalize,$explode) = $self->_rearrange([qw(WIDTH HEIGHT FONTSIZE COLOR BACKGROUND PLOT_BITS NORMALIZE EXPLODE)],@args);
   $width||=800;
   $height||=600;
   my $svg = SVG->new(width=>$width,height=>$height);
@@ -171,6 +196,8 @@ sub new {
   $self->background($background);
   $self->plot_bits($bit) if $bit;
   $self->normalize($normalize) if $normalize;
+  $explode ||= 0;
+  $self->explode($explode) if $explode;
 
   return $self;
 }
@@ -247,13 +274,13 @@ sub make_svg {
 
     #draw each letter at each position
     foreach my $letter(@array){
-	  my $scale;
+	  my $scale;	 
+	  
 	  if($self->normalize){
 		$scale = $letter->[1];
 	  } else {
 		$scale = $letter->[1] * ($bits / MAXBITS);
-	  }
-
+	  }	  
       if($count == 1){
 		if($self->normalize){
 		  $y_trans = 0;
@@ -264,8 +291,22 @@ sub make_svg {
       else {
         $y_trans += $prev_size;
       }
+	  
+	  my $explodeFactor = 0;	  
+	  if($self->explode){     
+		  if($letter->[0] eq 'a'){	 
+			$explodeFactor = 0;
+		  } elsif($letter->[0] eq 'g'){
+			$explodeFactor = 100;
+		  } elsif($letter->[0] eq 'c'){
+			$explodeFactor = 200;
+		  } elsif($letter->[0] eq 't'){
+			$explodeFactor = 450;
+		  }	
+	  }
+	  
       $pos_group->text('id'=> uc($letter->[0]).$bp,height=>$height,
-                      'width'=>$width,x=>$x,y=>$size,
+                      'width'=>$width,x=>$x,y=>$size + $explodeFactor,
                       'transform'=>"translate(0,$y_trans),scale(1,$scale)",
                       'style'=>{"font-size"=>$fontsize,
                       'text-anchor'=>'middle',
@@ -390,6 +431,26 @@ sub fontsize {
   }
   return   $self->{'_fontsize'};
 }
+
+=head2 explode
+
+ Title   : explode
+ Usage   : $picto->explode();
+ Function: get/set for explode
+ Returns : a hash reference
+ Arguments: a hash  reference
+
+=cut
+
+sub explode {
+  my ($self,$obj) = @_;
+  if($obj){
+    $self->{'_explode'} = $obj;
+  }
+  return   $self->{'_explode'};
+}
+
+
 
 =head2 color
 
